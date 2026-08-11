@@ -31,7 +31,7 @@ namespace OverdoseChaos
     [HarmonyPatch(typeof(RoundManager))]
     public class RoundManagerPatch
     {
-        // Limite maximale absolue pour éviter de faire planter le jeu (tu peux l'ajuster)
+        // Limite maximale absolue pour la puissance intérieure des monstres
         private static int limiteAbsoluePower = 30;
 
         [HarmonyPatch("BeginRound")]
@@ -46,9 +46,8 @@ namespace OverdoseChaos
                 float augmentationObjetsPourcent = 150f; 
                 RoundManager.Instance.scrapValueMultiplier *= (1f + (augmentationObjetsPourcent / 100f));
 
-                // +85% pour les entités / monstres
+                // +85% pour les entités / monstres (puissance intérieure)
                 float augmentationEntitesPourcent = 85f;
-                RoundManager.Instance.maxEnemyPowerCount = Mathf.RoundToInt(RoundManager.Instance.maxEnemyPowerCount * (1f + (augmentationEntitesPourcent / 100f)));
                 RoundManager.Instance.currentMaxInsidePower = Mathf.RoundToInt(RoundManager.Instance.currentMaxInsidePower * (1f + (augmentationEntitesPourcent / 100f)));
 
                 Plugin.Log.LogInfo($"Objets boostés de {augmentationObjetsPourcent}% et Entités boostées de {augmentationEntitesPourcent}% !");
@@ -66,20 +65,19 @@ namespace OverdoseChaos
             // Attente initiale de 40 secondes après l'atterrissage
             yield return new WaitForSeconds(40f);
 
-            while (RoundManager.Instance != null && RoundManager.Instance.roundStarted)
+            while (RoundManager.Instance != null)
             {
                 // Vérifie si on a atteint la limite de spawn autorisée
                 if (RoundManager.Instance.currentMaxInsidePower >= limiteAbsoluePower)
                 {
                     Plugin.Log.LogInfo("=== LIMITE ATTEINTE : Le chaos s'arrête d'augmenter pour préserver les performances ! ===");
-                    yield break; // Stoppe définitivement la coroutine pour cette partie
+                    yield break; 
                 }
 
                 Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Augmentation de la puissance des monstres (+2) ! ===");
 
-                // Incrémente la puissance d'apparition des entités
+                // Incrémente la puissance d'apparition des entités à l'intérieur
                 RoundManager.Instance.currentMaxInsidePower += 2;
-                RoundManager.Instance.maxEnemyPowerCount += 1;
 
                 // Répète toutes les 40 secondes
                 yield return new WaitForSeconds(40f);
