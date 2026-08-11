@@ -21,10 +21,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Build project
-        run: dotnet build LethalCompanyTemplate/OverdoseChaos.csproj --configuration Release
+        run: dotnet build OverdoseChaos.csproj --configuration Release
 
       - name: Upload built artifact
         uses: actions/upload-artifact@v4
         with:
           name: OverdoseChaos-Plugin
-          path: LethalCompanyTemplate/bin/Release/netstandard2.1/
+          path: bin/Release/netstandard2.1/
