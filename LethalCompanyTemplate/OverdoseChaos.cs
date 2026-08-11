@@ -22,7 +22,7 @@ namespace OverdoseChaos
         {
             Instance = this;
             Log = Logger;
-            Log.LogInfo($"Le mod {NAME} est bien chargé !");
+            Log.LogInfo($"Le mod {NAME} est chargé et prêt pour le chaos total !");
             harmony.PatchAll();
         }
     }
@@ -36,22 +36,45 @@ namespace OverdoseChaos
         {
             if (__instance == null) return;
 
-            Plugin.Log.LogInfo("=== OVERDOSE CHAOS : Activation du chaos total (Loot + Monstres) ! ===");
+            Plugin.Log.LogInfo("=== OVERDOSE CHAOS : Initialisation des paramètres globaux ===");
 
-            // 1. Boost massif de la valeur des objets (+150%)
+            // 1. Boost massif de la valeur des objets (+150% minimum)
             __instance.scrapValueMultiplier *= 2.5f;
 
-            // 2. Débridage total du nombre d'objets sur la lune
+            // 2. Forçage du loot partout sur la map (couloirs, salles, transitions)
             if (__instance.currentLevel != null)
             {
-                __instance.currentLevel.minScrap = 60;
-                __instance.currentLevel.maxScrap = 180;
+                __instance.currentLevel.minScrap = 80;
+                __instance.currentLevel.maxScrap = 220;
+
+                // 3. S'assurer que les monstres de la lune ont une chance de spawner (corrige les listes vides)
+                if (__instance.currentLevel.enemies != null)
+                {
+                    foreach (var enemy in __instance.currentLevel.enemies)
+                    {
+                        if (enemy != null && enemy.rarity <= 0)
+                        {
+                            enemy.rarity = 30; // Donne une chance d'apparition à tous les monstres
+                        }
+                    }
+                }
+
+                if (__instance.currentLevel.outsideEnemies != null)
+                {
+                    foreach (var outsideEnemy in __instance.currentLevel.outsideEnemies)
+                    {
+                        if (outsideEnemy != null && outsideEnemy.rarity <= 0)
+                        {
+                            outsideEnemy.rarity = 30;
+                        }
+                    }
+                }
             }
 
-            // 3. Boost initial de la puissance des monstres à l'intérieur (+85%)
-            __instance.currentMaxInsidePower = Mathf.RoundToInt(__instance.currentMaxInsidePower * 1.85f);
+            // 4. Puissance initiale des monstres augmentée
+            __instance.currentMaxInsidePower = Mathf.RoundToInt(__instance.currentMaxInsidePower * 2f);
 
-            Plugin.Log.LogInfo("Loot et monstres débridés avec succès !");
+            Plugin.Log.LogInfo("Loot généralisé et entités débridées avec succès !");
 
             if (Plugin.Instance != null)
             {
@@ -66,15 +89,15 @@ namespace OverdoseChaos
 
             while (roundManager != null)
             {
-                Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Forçage des spawns de monstres ! ===");
+                Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Hausse de puissance et forçage de spawn ! ===");
 
-                // Augmente la puissance maximale autorisée pour les monstres
-                roundManager.currentMaxInsidePower += 10;
+                // On augmente la puissance max des monstres
+                roundManager.currentMaxInsidePower += 20;
 
-                // Réinitialise le compteur de puissance actuelle pour autoriser l'apparition immédiate de nouvelles créatures
+                // On réinitialise la puissance actuelle pour forcer le jeu à faire spawner de nouvelles créatures immédiatement
                 roundManager.currentEnemyPower = 0;
 
-                Plugin.Log.LogInfo($"Nouvelle puissance intérieure des monstres : {roundManager.currentMaxInsidePower}");
+                Plugin.Log.LogInfo($"Nouvelle puissance max des monstres : {roundManager.currentMaxInsidePower}");
 
                 // Répète toutes les 40 secondes
                 yield return new WaitForSeconds(40f);
