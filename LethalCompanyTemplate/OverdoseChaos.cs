@@ -23,7 +23,6 @@ namespace OverdoseChaos
             Instance = this;
             Log = Logger;
             Log.LogInfo($"Le mod {NAME} est bien chargé !");
-
             harmony.PatchAll();
         }
     }
@@ -37,18 +36,24 @@ namespace OverdoseChaos
         {
             if (__instance == null) return;
 
-            Plugin.Log.LogInfo("=== INITIALISATION : OverdoseChaos applique les multiplicateurs ! ===");
+            Plugin.Log.LogInfo("=== OVERDOSE CHAOS : Activation du chaos total (Loot + Monstres) ! ===");
 
-            // 1. +150% pour la valeur des objets
-            float augmentationObjetsPourcent = 150f; 
-            __instance.scrapValueMultiplier *= (1f + (augmentationObjetsPourcent / 100f));
+            // 1. Boost massif de la valeur des objets (+150%)
+            __instance.scrapValueMultiplier *= 2.5f;
 
-            // 2. +85% pour la puissance des entités à l'intérieur
-            float augmentationEntitesPourcent = 85f;
-            __instance.currentMaxInsidePower = Mathf.RoundToInt(__instance.currentMaxInsidePower * (1f + (augmentationEntitesPourcent / 100f)));
+            // 2. Débridage total du nombre d'objets sur la lune pour qu'il y en ait partout
+            if (__instance.currentLevel != null)
+            {
+                __instance.currentLevel.minScrap = 60;
+                __instance.currentLevel.maxScrap = 180;
+            }
 
-            Plugin.Log.LogInfo($"Objets boostés de {augmentationObjetsPourcent}% et Entités boostées de {augmentationEntitesPourcent}% !");
+            // 3. Boost initial de la puissance des monstres à l'intérieur
+            __instance.currentMaxInsidePower = Mathf.RoundToInt(__instance.currentMaxInsidePower * 1.85f);
 
+            Plugin.Log.LogInfo("Loot et monstres débridés avec succès !");
+
+            // Lance la boucle infernale de chaos toutes les 40 secondes
             if (Plugin.Instance != null)
             {
                 Plugin.Instance.StartCoroutine(ChaosPeriodicRoutine(__instance));
@@ -57,16 +62,22 @@ namespace OverdoseChaos
 
         private static IEnumerator ChaosPeriodicRoutine(RoundManager roundManager)
         {
-            // Attente initiale de 40 secondes
+            // Attente initiale de 40 secondes après l'atterrissage
             yield return new WaitForSeconds(40f);
 
             while (roundManager != null)
             {
-                Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Hausse de la puissance des monstres (+5) ! ===");
+                Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Forçage des spawns de monstres ! ===");
 
-                // Incrémente la puissance des monstres toutes les 40 secondes
-                roundManager.currentMaxInsidePower += 5;
+                // Augmente la puissance maximale autorisée pour les monstres
+                roundManager.currentMaxInsidePower += 10;
 
+                // Force le jeu à recalculer et réinitialiser les cycles d'apparitions de monstres
+                roundManager.RefreshEnemiesList();
+
+                Plugin.Log.LogInfo($"Nouvelle puissance intérieure des monstres : {roundManager.currentMaxInsidePower}");
+
+                // Répète toutes les 40 secondes
                 yield return new WaitForSeconds(40f);
             }
         }
