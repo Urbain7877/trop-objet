@@ -37,7 +37,7 @@ namespace OverdoseChaos
         {
             if (__instance == null) return;
 
-            Plugin.Log.LogInfo("=== INITIALISATION : OverdoseChaos booste le loot et les monstres ! ===");
+            Plugin.Log.LogInfo("=== INITIALISATION : OverdoseChaos applique les multiplicateurs ! ===");
 
             // 1. +150% pour la valeur des objets
             float augmentationObjetsPourcent = 150f; 
@@ -55,47 +55,18 @@ namespace OverdoseChaos
             }
         }
 
-        // Patch pour modifier la génération du nombre d'objets par pièce selon tes pourcentages précis
-        [HarmonyPatch("SpawnScrapInTile")]
-        [HarmonyPrefix]
-        static bool PrefixSpawnScrapInTile(ref int ___itemsToSpawn)
-        {
-            float rand = Random.Range(0f, 100f);
-
-            if (rand <= 50f)
-            {
-                ___itemsToSpawn = 2; // 50% de chance d'avoir 2 items
-            }
-            else if (rand <= 80f)
-            {
-                ___itemsToSpawn = 3; // 30% de chance d'avoir 3 items (50 + 30)
-            }
-            else
-            {
-                ___itemsToSpawn = 4; // 20% de chance d'avoir 4 items
-            }
-
-            // S'assure qu'il y a au moins un minimum absolu d'un objet par pièce
-            if (___itemsToSpawn < 1)
-            {
-                ___itemsToSpawn = 1;
-            }
-
-            return true;
-        }
-
         private static IEnumerator ChaosPeriodicRoutine(RoundManager roundManager)
         {
+            // Attente initiale de 40 secondes
             yield return new WaitForSeconds(40f);
 
             while (roundManager != null)
             {
                 Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Hausse de la puissance des monstres (+5) ! ===");
 
-                // Incrémente la puissance des monstres régulièrement sans bloquer
+                // Incrémente la puissance des monstres toutes les 40 secondes
                 roundManager.currentMaxInsidePower += 5;
 
-                // Répète toutes les 40 secondes
                 yield return new WaitForSeconds(40f);
             }
         }
