@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -31,44 +31,42 @@ namespace OverdoseChaos
     [HarmonyPatch(typeof(RoundManager))]
     public class RoundManagerPatch
     {
-        // Limite maximale absolue pour la puissance intérieure des monstres
         private static int limiteAbsoluePower = 30;
 
-        [HarmonyPatch("BeginRound")]
+        // On cible la méthode "Start" ou une méthode standard de génération de début de partie
+        [HarmonyPatch("Start")]
         [HarmonyPostfix]
-        static void PostfixBeginRound()
+        static void PostfixStart(RoundManager __instance)
         {
-            Plugin.Log.LogInfo("=== ATTERRISSAGE : OverdoseChaos active les pourcentages ! ===");
+            if (__instance == null) return;
 
-            if (RoundManager.Instance != null)
+            Plugin.Log.LogInfo("=== INITIALISATION : OverdoseChaos applique les modifications ! ===");
+
+            // +150% pour les objets
+            float augmentationObjetsPourcent = 150f; 
+            __instance.scrapValueMultiplier *= (1f + (augmentationObjetsPourcent / 100f));
+
+            // +85% pour les entités / monstres (puissance intérieure)
+            float augmentationEntitesPourcent = 85f;
+            __instance.currentMaxInsidePower = Mathf.RoundToInt(__instance.currentMaxInsidePower * (1f + (augmentationEntitesPourcent / 100f)));
+
+            Plugin.Log.LogInfo($"Objets boostés de {augmentationObjetsPourcent}% et Entités boostées de {augmentationEntitesPourcent}% !");
+
+            // Lance la boucle toutes les 40 secondes
+            if (Plugin.Instance != null)
             {
-                // +150% pour les objets
-                float augmentationObjetsPourcent = 150f; 
-                RoundManager.Instance.scrapValueMultiplier *= (1f + (augmentationObjetsPourcent / 100f));
-
-                // +85% pour les entités / monstres (puissance intérieure)
-                float augmentationEntitesPourcent = 85f;
-                RoundManager.Instance.currentMaxInsidePower = Mathf.RoundToInt(RoundManager.Instance.currentMaxInsidePower * (1f + (augmentationEntitesPourcent / 100f)));
-
-                Plugin.Log.LogInfo($"Objets boostés de {augmentationObjetsPourcent}% et Entités boostées de {augmentationEntitesPourcent}% !");
-
-                // Lance la boucle toutes les 40 secondes
-                if (Plugin.Instance != null)
-                {
-                    Plugin.Instance.StartCoroutine(ChaosPeriodicRoutine());
-                }
+                Plugin.Instance.StartCoroutine(ChaosPeriodicRoutine(__instance));
             }
         }
 
-        private static IEnumerator ChaosPeriodicRoutine()
+        private static IEnumerator ChaosPeriodicRoutine(RoundManager roundManager)
         {
-            // Attente initiale de 40 secondes après l'atterrissage
+            // Attente initiale de 40 secondes
             yield return new WaitForSeconds(40f);
 
-            while (RoundManager.Instance != null)
+            while (roundManager != null)
             {
-                // Vérifie si on a atteint la limite de spawn autorisée
-                if (RoundManager.Instance.currentMaxInsidePower >= limiteAbsoluePower)
+                if (roundManager.currentMaxInsidePower >= limiteAbsoluePower)
                 {
                     Plugin.Log.LogInfo("=== LIMITE ATTEINTE : Le chaos s'arrête d'augmenter pour préserver les performances ! ===");
                     yield break; 
@@ -76,8 +74,7 @@ namespace OverdoseChaos
 
                 Plugin.Log.LogInfo("=== VAGUE DE CHAOS : Augmentation de la puissance des monstres (+2) ! ===");
 
-                // Incrémente la puissance d'apparition des entités à l'intérieur
-                RoundManager.Instance.currentMaxInsidePower += 2;
+                roundManager.currentMaxInsidePower += 2;
 
                 // Répète toutes les 40 secondes
                 yield return new WaitForSeconds(40f);
