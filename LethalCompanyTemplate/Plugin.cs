@@ -2,15 +2,25 @@
 using BepInEx.Logging;
 using HarmonyLib;
 
-namespace LethalCompanyTemplate
+namespace OverdoseChaos
 {
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(GUID, NAME, VERSION)]
     public class Plugin : BaseUnityPlugin
     {
+        public const string GUID = "com.tonnom.overdosechaos";
+        public const string NAME = "OverdoseChaos";
+        public const string VERSION = "1.0.0";
+
+        internal static ManualLogSource Log;
+        private readonly Harmony harmony = new Harmony(GUID);
+
         private void Awake()
         {
-            // Plugin startup logic
-            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+            Log = Logger;
+            Log.LogInfo($"Le mod {NAME} est bien chargé !");
+
+            // Applique les patchs Harmony si tu en as
+            harmony.PatchAll();
         }
     }
 }
