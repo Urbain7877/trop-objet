@@ -1,1 +1,9 @@
-
+{
+  "name": "OverdoseChaos",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Un mod de chaos total pour Lethal Company.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2100"
+  ]
+}
