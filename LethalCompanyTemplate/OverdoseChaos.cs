@@ -41,19 +41,18 @@ namespace OverdoseChaos
             // 1. Boost massif de la valeur des objets (+150%)
             __instance.scrapValueMultiplier *= 2.5f;
 
-            // 2. Débridage total du nombre d'objets sur la lune pour qu'il y en ait partout
+            // 2. Débridage total du nombre d'objets sur la lune
             if (__instance.currentLevel != null)
             {
                 __instance.currentLevel.minScrap = 60;
                 __instance.currentLevel.maxScrap = 180;
             }
 
-            // 3. Boost initial de la puissance des monstres à l'intérieur
+            // 3. Boost initial de la puissance des monstres à l'intérieur (+85%)
             __instance.currentMaxInsidePower = Mathf.RoundToInt(__instance.currentMaxInsidePower * 1.85f);
 
             Plugin.Log.LogInfo("Loot et monstres débridés avec succès !");
 
-            // Lance la boucle infernale de chaos toutes les 40 secondes
             if (Plugin.Instance != null)
             {
                 Plugin.Instance.StartCoroutine(ChaosPeriodicRoutine(__instance));
@@ -72,8 +71,8 @@ namespace OverdoseChaos
                 // Augmente la puissance maximale autorisée pour les monstres
                 roundManager.currentMaxInsidePower += 10;
 
-                // Force le jeu à recalculer et réinitialiser les cycles d'apparitions de monstres
-                roundManager.RefreshEnemiesList();
+                // Réinitialise le compteur de puissance actuelle pour autoriser l'apparition immédiate de nouvelles créatures
+                roundManager.currentEnemyPower = 0;
 
                 Plugin.Log.LogInfo($"Nouvelle puissance intérieure des monstres : {roundManager.currentMaxInsidePower}");
 
